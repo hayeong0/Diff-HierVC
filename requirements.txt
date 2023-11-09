@@ -1,0 +1,9 @@
+amfm_decompy==1.0.11
+einops==0.7.0
+natten==0.14.6
+numpy==1.21.4
+scipy==1.6.3
+torch==1.11.0+cu113
+torchaudio==0.11.0+cu113
+tqdm==4.62.3
+transformers==4.35.0
