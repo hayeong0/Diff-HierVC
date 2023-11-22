@@ -1,4 +1,4 @@
-##  Diff-HierVC: Diffusion-based Hierarchical Voice Conversion with Robust Pitch Generation and Masked Prior for Zero-shot Speaker Adaptation  <a src="https://img.shields.io/badge/cs.CV-2305.06355-b31b1b?logo=arxiv&logoColor=red" href="http://arxiv.org/abs/2311.04693"> <img src="https://img.shields.io/badge/cs.CV-2305.06355-b31b1b?logo=arxiv&logoColor=red">
+##  Diff-HierVC: Diffusion-based Hierarchical Voice Conversion with Robust Pitch Generation and Masked Prior for Zero-shot Speaker Adaptation  <a src="https://img.shields.io/badge/cs.CV-2311.04693-b31b1b?logo=arxiv&logoColor=red" href="http://arxiv.org/abs/2311.04693"> <img src="https://img.shields.io/badge/cs.CV-2311.04693-b31b1b?logo=arxiv&logoColor=red">
 
 The official Pytorch implementation of Diff-HierVC (Interspeeh 2023, Oral)
    
@@ -67,7 +67,7 @@ python3 inference.py \
 
 
 
-## Citation
+## 🎓 Citation
 ```
 @inproceedings{choi23d_interspeech,
   author={Ha-Yeong Choi and Sang-Hoon Lee and Seong-Whan Lee},
@@ -80,7 +80,7 @@ python3 inference.py \
 ```
 
 
-## Acknowledgements
+## 💎 Acknowledgements
 - Our code is based on [DiffVC](https://github.com/huawei-noah/Speech-Backbones/tree/main/DiffVC) and [HiFiGAN](https://github.com/jik876/hifi-gan).
 
  
