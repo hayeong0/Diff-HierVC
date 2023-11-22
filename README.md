@@ -20,7 +20,78 @@ Our model checkpoints can be downloaded [here](https://drive.google.com/drive/fo
 
 ## 🔨 Usage
 
+1. Clone this rep && Install python requirement
+
+```
+git clone https://github.com/hayeong0/Diff-HierVC.git
+pip install -r req*
+```
+
+2. Download the pre-trained model checkpoint from drive and place it in the following path.
+```
+.
+├── ckpt
+│   ├── config.json
+│   └── model_diffhier.pth ✅
+├── inference.py
+├── infer.sh
+├── model
+├── module
+├── requirements.txt
+├── utils
+└── vocoder
+    ├── hifigan.py
+    ├── modules.py
+    └── voc_ckpt.pth ✅
+``` 
+3. Run `infer.sh`
+
+`diffpitch_ts` refers to the time step of the pitch generator and `diffvoice_ts` refers to the time step of the Mel generator.
+
+Empirically, it has been observed that if the time step of diffpitch is too small, noise remains, and if it is too large, excessive diversity occurs.
+
+Please use it appropriately for your dataset!
+```
+bash infer.sh
+
+python3 inference.py \
+    --src_path './sample/src_p241_004.wav' \
+    --trg_path './sample/tar_p239_022.wav' \
+    --ckpt_model './ckpt/model_diffhier.pth' \
+    --ckpt_voc './ckpt/model_diffhier.pth' \
+    --output_dir './vocoder/voc_ckpt.pth' \
+    --diffpitch_ts 30 \
+    --diffvoice_ts 6
+```
+🎧 Test it on your own dataset and share your interesting results! :)
 
 
+
+## Citation
+```
+@inproceedings{choi23d_interspeech,
+  author={Ha-Yeong Choi and Sang-Hoon Lee and Seong-Whan Lee},
+  title={{Diff-HierVC: Diffusion-based Hierarchical Voice Conversion with Robust Pitch Generation and Masked Prior for Zero-shot Speaker Adaptation}},
+  year=2023,
+  booktitle={Proc. INTERSPEECH 2023},
+  pages={2283--2287},
+  doi={10.21437/Interspeech.2023-817}
+}
+```
+
+
+## Acknowledgements
+- Our code is based on [DiffVC](https://github.com/huawei-noah/Speech-Backbones/tree/main/DiffVC) and [HiFiGAN](https://github.com/jik876/hifi-gan).
 
  
+
+## License
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
+
