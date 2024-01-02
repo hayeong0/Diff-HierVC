@@ -40,8 +40,8 @@ def get_yaapt_f0(audio, sr=16000, interp=False):
     to_pad = int(20.0 / 1000 * sr) // 2
     f0s = []
     for y in audio.astype(np.float64):
-        y_pad = np.pad(y.squeeze(), (to_pad, to_pad), "constant", constant_values=0) 
-        pitch = pYAAPT.yaapt(basic.SignalObj(y_pad, sr), 
+        y_pad = np.pad(y.squeeze(), (to_pad, to_pad), "constant", constant_values=0)
+        pitch = pYAAPT.yaapt(basic.SignalObj(y_pad, sr),
                              **{'frame_length': 20.0, 'frame_space': 5.0, 'nccf_thresh1': 0.25, 'tda_frame_length': 25.0})
         f0s.append(pitch.samp_interp[None, None, :] if interp else pitch.samp_values[None, None, :])
 
@@ -58,19 +58,19 @@ def inference(a):
         f_max=hps.data.mel_fmax,
         n_mels=hps.data.n_mel_channels,
         window_fn=torch.hann_window
-    ).cuda()
+    ).to(device)
 
     # Load pre-trained w2v (XLS-R)
-    w2v = Wav2vec2().cuda()  
+    w2v = Wav2vec2().to(device)  
     
     # Load model
     model = DiffHierVC(hps.data.n_mel_channels, hps.diffusion.spk_dim,
-                        hps.diffusion.dec_dim, hps.diffusion.beta_min, hps.diffusion.beta_max, hps).cuda() 
-    model.load_state_dict(torch.load(a.ckpt_model))
+                        hps.diffusion.dec_dim, hps.diffusion.beta_min, hps.diffusion.beta_max, hps).to(device)
+    model.load_state_dict(torch.load(a.ckpt_model, map_location=torch.device(device)))
     model.eval()
     
     # Load vocoder
-    net_v = HiFi(hps.data.n_mel_channels, hps.train.segment_size // hps.data.hop_length, **hps.model).cuda()
+    net_v = HiFi(hps.data.n_mel_channels, hps.train.segment_size // hps.data.hop_length, **hps.model).to(device)
     utils.load_checkpoint(a.ckpt_voc, net_v, None)
     net_v.eval().dec.remove_weight_norm()  
     
@@ -79,9 +79,9 @@ def inference(a):
     src_name = os.path.splitext(os.path.basename(a.src_path))[0]
     audio = load_audio(a.src_path)   
 
-    src_mel = mel_fn(audio.cuda())
-    src_length = torch.LongTensor([src_mel.size(-1)]).cuda()
-    w2v_x = w2v(F.pad(audio, (40, 40), "reflect").cuda())
+    src_mel = mel_fn(audio.to(device))
+    src_length = torch.LongTensor([src_mel.size(-1)]).to(device)
+    w2v_x = w2v(F.pad(audio, (40, 40), "reflect").to(device))
 
     try:
         f0 = get_yaapt_f0(audio.numpy())
@@ -89,15 +89,15 @@ def inference(a):
         f0 = np.zeros((1, audio.shape[-1] // 80), dtype=np.float32)
  
     f0_x = f0.copy()
-    f0_x = torch.log(torch.FloatTensor(f0_x+1)).cuda()
+    f0_x = torch.log(torch.FloatTensor(f0_x+1)).to(device)
     ii = f0 != 0
     f0[ii] = (f0[ii] - f0[ii].mean()) / f0[ii].std()
-    f0_norm_x = torch.FloatTensor(f0).cuda()
+    f0_norm_x = torch.FloatTensor(f0).to(device)
    
     trg_name = os.path.splitext(os.path.basename(a.trg_path))[0] 
     trg_audio = load_audio(a.trg_path)    
 
-    trg_mel = mel_fn(trg_audio.cuda())
+    trg_mel = mel_fn(trg_audio.to(device))
     trg_length = torch.LongTensor([trg_mel.size(-1)]).to(device)     
     
     with torch.no_grad(): 
