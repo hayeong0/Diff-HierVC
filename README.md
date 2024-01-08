@@ -16,7 +16,8 @@ https://diff-hiervc.github.io/audio_demo/
 Our model checkpoints can be downloaded [here](https://drive.google.com/drive/folders/1THkeyDlA7EbZxwnuuxGsUOftV70Fb7h4?usp=sharing).
 
 - model_diffhier.pth
-- voc_ckpt.pth 
+- voc_hifigan.pth
+- voc_bigvgan.pth
 
 ## 🔨 Usage
 
@@ -42,7 +43,8 @@ pip install -r req*
 └── vocoder
     ├── hifigan.py
     ├── modules.py
-    └── voc_ckpt.pth ✅
+    └── voc_hifigan.pth ✅
+    └── voc_bigvgan.pth ✅
 ``` 
 3. Run `infer.sh`
 
@@ -58,7 +60,7 @@ python3 inference.py \
     --src_path './sample/src_p241_004.wav' \
     --trg_path './sample/tar_p239_022.wav' \
     --ckpt_model './ckpt/model_diffhier.pth' \
-    --ckpt_voc './vocoder/voc_ckpt.pth' \
+    --ckpt_voc './vocoder/voc_bigvgan.pth' \
     --output_dir './converted' \
     --diffpitch_ts 30 \
     --diffvoice_ts 6
