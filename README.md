@@ -83,7 +83,7 @@ python3 inference.py \
 
 
 ## 💎 Acknowledgements
-- Our code is based on [DiffVC](https://github.com/huawei-noah/Speech-Backbones/tree/main/DiffVC) and [HiFiGAN](https://github.com/jik876/hifi-gan).
+- Our code is based on [DiffVC](https://github.com/huawei-noah/Speech-Backbones/tree/main/DiffVC), [HiFiGAN](https://github.com/jik876/hifi-gan), and [BigVGAN](https://github.com/NVIDIA/BigVGAN).
 
  
 
