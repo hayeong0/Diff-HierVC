@@ -11,7 +11,7 @@ import torchaudio
 from einops import rearrange
 
 from alias_free_torch import *
-import activations as activations
+import vocoder.activations as activations
 
 class AMPBlock1(torch.nn.Module):
     def __init__(self, channels, kernel_size=3, dilation=(1, 3, 5), activation=None):
