@@ -1,16 +1,16 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
-import bigvgan_v2.modules as modules
+from torch.nn import functional as F 
 
 from torch.nn import Conv1d, ConvTranspose1d, AvgPool1d, Conv2d
 from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
-from commons import init_weights, get_padding
 from torch.cuda.amp import autocast
 import torchaudio
 from einops import rearrange
 
 from alias_free_torch import *
+from module.commons import init_weights, get_padding
+import vocoder.modules as modules
 import vocoder.activations as activations
 
 class AMPBlock1(torch.nn.Module):
@@ -262,7 +262,7 @@ class MultiPeriodDiscriminator(torch.nn.Module):
 
         return y_d_rs, y_d_gs, fmap_rs, fmap_gs
 
-class SynthesizerTrn(nn.Module):
+class BigvGAN(nn.Module):
   """
   Synthesizer for Training
   """
