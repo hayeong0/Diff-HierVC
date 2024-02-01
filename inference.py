@@ -12,6 +12,7 @@ import utils.utils as utils
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic 
 from vocoder.hifigan import HiFi 
+from vocoder.bigvgan import BigvGAN 
 from model.diffhiervc import DiffHierVC, Wav2vec2 
 from utils.utils import MelSpectrogramFixed
 
@@ -70,8 +71,12 @@ def inference(a):
     model.eval()
     
     # Load vocoder
-    net_v = HiFi(hps.data.n_mel_channels, hps.train.segment_size // hps.data.hop_length, **hps.model).cuda()
-    utils.load_checkpoint(a.ckpt_voc, net_v, None)
+    if a.voc == "hifigan":
+        net_v = HiFi(hps.data.n_mel_channels, hps.train.segment_size // hps.data.hop_length, **hps.model).cuda()
+        utils.load_checkpoint(a.ckpt_voc, net_v, None)
+    elif a.voc == "bigvgan":
+        net_v = BigvGAN(hps.data.n_mel_channels, hps.train.segment_size // hps.data.hop_length, **hps.model).cuda()
+        utils.load_checkpoint(a.ckpt_voc, net_v, None) 
     net_v.eval().dec.remove_weight_norm()  
     
     # Convert audio 
@@ -117,14 +122,15 @@ def main():
     parser.add_argument('--src_path', type=str, default='/workspace/ha0/data/src.wav')  
     parser.add_argument('--trg_path', type=str, default='/workspace/ha0/data/tar.wav')  
     parser.add_argument('--ckpt_model', type=str, default='./ckpt/model_diffhier.pth')
-    parser.add_argument('--ckpt_voc', type=str, default='./vocoder/voc_ckpt.pth')  
+    parser.add_argument('--voc', type=str, default='bigvgan')  
+    parser.add_argument('--ckpt_voc', type=str, default='./vocoder/voc_bigvgan.pth')  
     parser.add_argument('--output_dir', '-o', type=str, default='./converted') 
     parser.add_argument('--diffpitch_ts', '-dpts', type=int, default=30) 
-    parser.add_argument('--diffvoice_ts', '-dvts', type=int, default=6) 
+    parser.add_argument('--diffvoice_ts', '-dvts', type=int, default=6)  
     
     global hps, hps_voc, device, a 
     a = parser.parse_args()
-    config = os.path.join(os.path.split(a.ckpt_model)[0], 'config.json')  
+    config = os.path.join(os.path.split(a.ckpt_model)[0], 'config_bigvgan.json')  
     hps = utils.get_hparams_from_file(config) 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
