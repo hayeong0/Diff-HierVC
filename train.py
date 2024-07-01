@@ -16,7 +16,7 @@ import commons
 import utils
  
 from augmentation.aug import Augment
-from model.diffhiervc import Wav2vec2, DiffHierVC
+from model.diffhiervc import Wav2vec2, DiffHierVC
 from data_loader import AudioDataset, MelSpectrogramFixed
 from vocoder.hifigan import HiFi
 from torch.utils.data import DataLoader
