@@ -5,7 +5,7 @@ import numpy as np
 from torch.nn import functional as F
 
 from model.base import BaseModule
-from model.diffusion_module import *
+from model.diffusion_module import * 
 
 
 class GradLogPEstimator(BaseModule):
@@ -45,7 +45,7 @@ class GradLogPEstimator(BaseModule):
                 ResnetBlock(dim_in, dim_in, time_emb_dim=dim_base),
                 Residual(Rezero(LinearAttention(dim_in))),
                 Upsample(dim_in)]))
-            
+             
         self.m_final_block = Block(dim_base, dim_base)
         self.m_final_conv = torch.nn.Conv2d(dim_base, 1, 1)
         
@@ -60,7 +60,8 @@ class GradLogPEstimator(BaseModule):
         x_mask = x_mask.unsqueeze(1)
 
         condition = torch.cat([condition, spk.squeeze(2)], 1) 
-        condition = self.cond_block(condition).unsqueeze(-1).unsqueeze(-1)   
+        condition = self.cond_block(condition).unsqueeze(-1).unsqueeze(-1)  
+
         condition = torch.cat(x.shape[2] * [condition], 2)  
         condition = torch.cat(x.shape[3] * [condition], 3)
         x = torch.cat([x, condition], 1)
@@ -98,8 +99,8 @@ class GradLogPEstimator(BaseModule):
         z_output = self.z_final_conv(z_x * x_mask)
 
         return (m_output * x_mask).squeeze(1), (z_output * x_mask).squeeze(1)
-
-
+ 
+ 
 class Diffusion(BaseModule):
     def __init__(self, n_feats, dim_unet, dim_spk, beta_min, beta_max):
         super(Diffusion, self).__init__()
@@ -148,6 +149,7 @@ class Diffusion(BaseModule):
         xt_z_pr = x0 * x0_weight + z_pr * z_pr_weight
         return xt_z_pr * mask 
 
+ 
     @torch.no_grad()
     def reverse(self, z, mask, z_pr, spk, ts):
         h = 1.0 / ts
@@ -167,10 +169,59 @@ class Diffusion(BaseModule):
             sigma = self.get_sigma(t - h, t)  
 
             dxt = (z_pr - xt) * (0.5 * beta_t * h + omega) 
-            _, dxt_ = self.estimator(xt, mask, z_pr, spk, time) 
+            tmp, dxt_ = self.estimator(xt, mask, z_pr, spk, time) 
             dxt -= dxt_ * (1.0 + kappa) * (beta_t * h)
             dxt += torch.randn_like(z, device=z.device) * sigma
             xt = (xt - dxt) * mask
             
-        return xt
+        return xt 
+     
+    @torch.no_grad()
+    def forward(self, z, mask, enc_out, spk, n_timesteps, mode): 
+        return self.reverse_diffusion(z, mask, enc_out, spk, n_timesteps, mode)
  
+    def random_masking(self, xt, num, frame): 
+        xt_mask = torch.ones_like(xt)
+        x0_mask = torch.ones_like(xt)
+        for _ in range(num):
+            idx = random.randint(0, xt.size(1)-frame)
+            xt[:, idx:idx+frame, :] = 0
+            xt_mask[:, idx:idx+frame, :] = 0
+        x0_mask -= xt_mask  
+        
+        return xt, xt_mask, x0_mask
+ 
+
+    def compute_diffused_z_pr(self, x0, mask, z_pr, t, use_torch=False):
+        x0_weight = self.get_gamma(0, t, use_torch=use_torch)  
+        z_pr_weight = 1.0 - x0_weight
+        xt_z_pr = x0 * x0_weight + z_pr * z_pr_weight
+        return xt_z_pr * mask  
+    
+    
+    def forward_diffusion(self, x0, mask, enc_out, t):
+        xt = self.compute_diffused_z_pr(x0, mask, enc_out, t, use_torch=True)
+        variance = 1.0 - self.get_gamma(0, t, p=2.0, use_torch=True)
+        z = torch.randn(x0.shape, dtype=x0.dtype, device=x0.device, requires_grad=False)
+        xt = xt + z * torch.sqrt(variance)
+    
+        return xt * mask, z * mask 
+
+    def compute_loss(self, x0, mask, enc_out, spk, t):
+        xt, z = self.forward_diffusion(x0, mask, enc_out, t) 
+        masked_xt, xt_mask, x0_mask = self.random_masking(xt, num=4, frame=8) 
+     
+        m_estimation, z_estimation = self.estimator(masked_xt, mask, enc_out, spk, t) 
+        m_estimation *= torch.sqrt(1.0 - self.get_gamma(0, t, p=2.0, use_torch=True))
+        z_estimation *= torch.sqrt(1.0 - self.get_gamma(0, t, p=2.0, use_torch=True))
+        diff_loss = torch.sum((z_estimation*xt_mask + z) ** 2) / (torch.sum(mask) * self.n_feats)
+        recon_loss = F.l1_loss(x0*x0_mask, m_estimation*x0_mask)
+
+        return diff_loss, recon_loss
+
+    def compute_t(self, x0, mask, enc_out, spk, offset=1e-5):
+        b = x0.shape[0]
+        t = torch.rand(b, dtype=x0.dtype, device=x0.device, requires_grad=False)
+        t = torch.clamp(t, offset, 1.0 - offset)
+
+        return self.compute_loss(x0, mask, enc_out, spk, t)
