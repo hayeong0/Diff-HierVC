@@ -43,7 +43,7 @@
       "upsample_rates": [5,4,2,2,2,2],
       "upsample_initial_channel": 1024,
       "upsample_kernel_sizes": [11,8,4,4,4,4], 
-      "encoder_hidden_size": 128
+      "hidden_size": 128
     }, 
     "diffusion" : {
       "dec_dim" : 64,
