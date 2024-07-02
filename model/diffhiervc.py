@@ -165,7 +165,7 @@ class DiffHierVC(BaseModule):
         z_f0 = self.f0_dec.compute_diffused_z_pr(x_f0, f0_mask, y_f0_hat, 1.0) 
         z_f0 += torch.randn_like(z_f0, device=z_f0.device)
         pred_f0 = self.f0_dec.reverse(z_f0, f0_mask, y_f0_hat*f0_mask, enc_f0*f0_mask, spk, ts=diffpitch_ts)
-        f0_zeros_mask = (x_f0 == 0).unsqueeze(1)
+        f0_zeros_mask = (x_f0 == 0)
         pred_f0[f0_zeros_mask.expand_as(pred_f0)] = 0 
 
         # Diff-Voice
