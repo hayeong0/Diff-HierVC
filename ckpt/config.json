@@ -46,7 +46,7 @@
     "mixup_ratio": 0.6,
     "n_layers_q": 3,
     "use_spectral_norm": false,
-    "encoder_hidden_size": 128
+    "hidden_size": 128
   }, 
   "diffusion" : {
     "dec_dim" : 64,
